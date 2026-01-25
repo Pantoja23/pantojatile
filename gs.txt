@@ -1,0 +1,158 @@
+/** PANTOJA TILE - SERVER V25 (EL MASTER - RELEVOS & AUDITORÍA) **/
+
+const SPREADSHEET_ID = "1J_IkIO6FpmaeptpXfmpqY1DPD0htGUovXOwjDYMUSVU";
+
+function doGet(e) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const action = e.parameter.action;
+  const p = e.parameter;
+
+  try {
+    /* --- LOGIN STAFF --- */
+    if (action === 'login_staff') {
+      const emailInput = String(p.email || "").toLowerCase().trim();
+      const passInput = String(p.pass || "").trim();
+      const sheetUsers = ss.getSheetByName("users");
+      const dataUsers = sheetUsers.getDataRange().getValues();
+      for (let i = 1; i < dataUsers.length; i++) {
+        if (String(dataUsers[i][2]).toLowerCase().trim() === emailInput && String(dataUsers[i][7]).trim() === passInput) {
+          if (String(dataUsers[i][6]).toLowerCase().trim() === "activo") {
+            return jsonResponse({success: true, name: dataUsers[i][1], compania: dataUsers[i][8]});
+          }
+        }
+      }
+      return jsonResponse({success: false, msg: "Credenciales Incorrectas"});
+    }
+
+    /* --- CHECK STATUS --- */
+    if (action === 'check_status') {
+      const workerName = p.workerName;
+      const logSheet = ss.getSheetByName("Labor_log");
+      if (!logSheet) return jsonResponse({active: false});
+      const logData = logSheet.getDataRange().getValues();
+      for (let i = logData.length - 1; i >= 1; i--) {
+        if (logData[i][1] === workerName && logData[i][4] === "") {
+          return jsonResponse({ active: true, jobId: logData[i][0], startTimeMillis: logData[i][5] });
+        }
+      }
+      return jsonResponse({active: false});
+    }
+
+    /* --- GET ORDERS --- */
+    if (action === 'get_worker_orders') {
+      const workerName = p.workerName;
+      const ordersSheet = ss.getSheetByName("Work_Orders");
+      const logSheet = ss.getSheetByName("Labor_log");
+      const ordersData = ordersSheet.getDataRange().getValues();
+      const logData = logSheet ? logSheet.getDataRange().getValues() : [];
+      
+      ordersData.shift(); 
+      const jobs = ordersData.filter(r => String(r[6]).trim() === workerName && String(r[1]).toLowerCase().trim() === 'active')
+      .map(row => {
+        const jobId = row[0];
+        const totalHrs = logData.reduce((sum, l) => (String(l[0]) === String(jobId)) ? sum + (parseFloat(l[8]) || 0) : sum, 0);
+        let ultimaNota = "Sin reportes previos.";
+        for (let i = logData.length - 1; i >= 1; i--) {
+          if (String(logData[i][0]) === String(jobId) && logData[i][13] !== "") {
+            ultimaNota = `[${logData[i][1]}]: ${logData[i][13]}`;
+            break;
+          }
+        }
+        return {
+          id: jobId, nombre_cliente: row[2], telefono: row[3], direccion: row[4], servicio: row[5], instrucciones: row[8],
+          horas_acumuladas: totalHrs.toFixed(2),
+          notas_staff: ultimaNota 
+        };
+      });
+      return jsonResponse(jobs);
+    }
+  } catch (err) { return jsonResponse({error: err.toString()}); }
+}
+
+function doPost(e) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const params = JSON.parse(e.postData.contents);
+  const now = new Date();
+  const fecha = Utilities.formatDate(now, "GMT-6", "MM/dd/yyyy");
+  const hora = Utilities.formatDate(now, "GMT-6", "HH:mm:ss");
+
+  /* --- NUEVO: CAPTURA DE LEADS DESDE LA WEB --- */
+  if (params.action === 'save_web_lead') {
+    const sheetLeads = ss.getSheetByName("Leads_Web");
+    const idProyecto = (params.servicio.substring(0,3).toUpperCase()) + "-" + now.getTime();
+    
+    sheetLeads.appendRow([
+      idProyecto,
+      fecha + " " + hora,
+      params.cliente,
+      params.tel,
+      params.email,
+      params.servicio,
+      params.mensaje,
+      "New",
+      "No Discount",
+      "Lead desde la Web",
+      params.compania
+    ]);
+    return ContentService.createTextOutput("OK");
+  }
+
+  /* --- LÓGICA DE RELOJ (PUNCH IN/OUT) --- */
+  const sheetLog = ss.getSheetByName("Labor_log");
+  const sheetOrders = ss.getSheetByName("Work_Orders");
+  let coordsRaw = params.coords || "0,0";
+  let latLng = coordsRaw.split(",");
+
+  const orders = sheetOrders.getDataRange().getValues();
+  let direccionCliente = "";
+  for(let j=1; j<orders.length; j++) {
+    if(String(orders[j][0]) === String(params.id)) {
+      direccionCliente = orders[j][4]; 
+      break;
+    }
+  }
+
+  let direccionFisica = "Ubicación Desconocida";
+  let millasDistancia = 0;
+  try {
+    const geo = Maps.newGeocoder().reverseGeocode(latLng[0], latLng[1]);
+    if (geo.status === 'OK') direccionFisica = geo.results[0].formatted_address;
+    if (direccionCliente) {
+      const route = Maps.newDirectionFinder().setOrigin(coordsRaw).setDestination(direccionCliente).getDirections();
+      if (route.status === "OK") millasDistancia = (route.routes[0].legs[0].distance.value / 1609.34).toFixed(2);
+    }
+  } catch(e) { millasDistancia = "Err"; }
+
+  if (params.action === 'PUNCH_IN') {
+    sheetLog.appendRow([
+      params.id, params.worker, fecha, hora, "", now.getTime(), "", 0, 0, direccionFisica, millasDistancia, "", "", ""
+    ]);
+    return ContentService.createTextOutput("OK");
+  } 
+  
+  else if (params.action === 'PUNCH_OUT') {
+    const data = sheetLog.getDataRange().getValues();
+    for (let i = data.length - 1; i >= 1; i--) {
+      if (data[i][1] === params.worker && String(data[i][0]) === String(params.id) && data[i][4] === "") {
+        const row = i + 1;
+        const startMs = data[i][5];
+        const totalSec = Math.floor((now.getTime() - startMs) / 1000);
+        const totalHrs = (totalSec / 3600).toFixed(2);
+
+        sheetLog.getRange(row, 5).setValue(hora);
+        sheetLog.getRange(row, 7).setValue(now.getTime());
+        sheetLog.getRange(row, 8).setValue(totalSec);
+        sheetLog.getRange(row, 9).setValue(totalHrs);
+        sheetLog.getRange(row, 12).setValue(direccionFisica);
+        sheetLog.getRange(row, 13).setValue(millasDistancia);
+        sheetLog.getRange(row, 14).setValue(params.notas);
+        break;
+      }
+    }
+    return ContentService.createTextOutput("OK");
+  }
+}
+
+function jsonResponse(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}

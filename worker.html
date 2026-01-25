@@ -1,0 +1,385 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Pantoja Elite Staff</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { 
+            --p: #6366f1; --bg: #0b0f1a; --card: rgba(23, 28, 41, 0.85); 
+            --neon: #818cf8; --accent: #10b981; --red: #ff4b4b;
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --glow: 0 0 15px rgba(99, 102, 241, 0.6);
+        }
+        
+        body, html { 
+            background: var(--bg); color: white; margin: 0; padding: 0; 
+            font-family: -apple-system, system-ui, sans-serif;
+            height: 100%; overflow: hidden; font-size: 14px;
+        }
+
+        .app-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% -10%, #1e1b4b 0%, #0b0f1a 100%);
+            z-index: -1;
+        }
+
+        .hidden { display: none !important; }
+
+        .btn-main {
+            width: 100%; padding: 16px; border-radius: 16px; border: none;
+            background: linear-gradient(135deg, var(--p), #4338ca);
+            color: white; font-weight: 800; font-size: 14px; text-transform: uppercase;
+            box-shadow: var(--glow); transition: 0.3s all ease;
+            cursor: pointer; letter-spacing: 1px;
+        }
+        .btn-main:active { transform: scale(0.96); filter: brightness(1.2); }
+        .btn-main.active { background: linear-gradient(135deg, var(--red), #991b1b); box-shadow: 0 0 15px rgba(255, 75, 75, 0.5); }
+
+        .native-card {
+            background: var(--card); backdrop-filter: blur(12px);
+            border-radius: 16px; padding: 15px; margin-bottom: 12px;
+            border: 1px solid var(--glass-border);
+            display: flex; justify-content: space-between; align-items: center;
+            transition: 0.3s;
+        }
+
+        .detail-view {
+            position: fixed; inset: 0; background: rgba(11, 15, 26, 0.98); z-index: 1000;
+            padding: calc(env(safe-area-inset-top) + 10px) 15px 20px;
+            overflow-y: auto; box-sizing: border-box;
+        }
+
+        .action-btn {
+            background: var(--card); height: 55px; border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; border: 1px solid var(--glass-border); font-size: 20px; text-decoration: none;
+        }
+
+        .history-box {
+            background: rgba(99, 102, 241, 0.05); border-radius: 14px;
+            padding: 12px; margin: 8px 0; border: 1px solid rgba(99, 102, 241, 0.3);
+            max-height: 120px; overflow-y: auto; font-size: 12px; color: #cbd5e1;
+            line-height: 1.5; white-space: pre-wrap;
+        }
+
+        #timer { 
+            font-size: 48px; font-weight: 800; text-align: center; margin: 15px 0; 
+            font-family: monospace; letter-spacing: 3px;
+            text-shadow: 0 0 15px var(--neon);
+        }
+
+        .notes-container {
+            background: rgba(0, 0, 0, 0.2); border: 1px solid var(--p);
+            border-radius: 14px; padding: 12px; margin-top: 10px;
+        }
+        textarea { width: 100%; background: transparent; border: none; color: white; font-size: 14px; outline: none; resize: none; height: 60px; }
+
+        input {
+            width: 100%; background: var(--card); border: 1px solid var(--glass-border); 
+            padding: 16px; border-radius: 14px; color: white; margin-bottom: 12px; box-sizing: border-box; outline: none;
+        }
+
+        .week-badge {
+            background: rgba(129, 140, 248, 0.2);
+            color: var(--neon);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 10px;
+            border: 1px solid var(--neon);
+            text-transform: uppercase;
+        }
+
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--p); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="app-bg"></div>
+
+<div id="loader" class="hidden" style="position:fixed; inset:0; background:rgba(11,15,26,0.95); z-index:10001; display:flex; align-items:center; justify-content:center;">
+    <div class="spinner"></div>
+</div>
+
+<div id="view_login" style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
+    <img src="img/logo.png" style="width:100px; margin-bottom:30px; filter: drop-shadow(0 0 15px var(--p));">
+    <div style="width:100%; max-width:300px;">
+        <input type="email" id="login_email" placeholder="Usuario / Email">
+        <input type="password" id="login_pass" placeholder="Contraseña">
+        <button onclick="handleLogin()" class="btn-main">CONECTAR SISTEMA</button>
+    </div>
+</div>
+
+<div id="view_list" class="hidden" style="padding:15px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-top:10px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <h2 id="welcome_name" style="margin:0; font-size:22px;">Hola</h2>
+                <span id="week_display" class="week-badge">Semana --</span>
+            </div>
+            <small style="color:var(--neon); font-weight:800; letter-spacing: 1px;">PANTOJA ELITE STAFF</small>
+        </div>
+        <button onclick="logout()" style="background:var(--card); border:1px solid var(--glass-border); color:var(--red); width:46px; height:46px; border-radius:14px;"><i class="fas fa-power-off"></i></button>
+    </div>
+    <div id="jobs_container"></div>
+</div>
+
+<div id="view_detail" class="detail-view hidden">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <button onclick="closeDetail()" style="background:var(--card); border:1px solid var(--glass-border); color:white; padding:10px 15px; border-radius:12px; font-size:11px; font-weight:bold;">VOLVER</button>
+        <img src="img/logo.png" style="width:55px; filter: drop-shadow(0 0 10px var(--p));">
+    </div>
+    
+    <h1 id="det_client" style="font-size:30px; margin:0; letter-spacing:-1px;"></h1>
+    <div id="det_service" style="color:var(--neon); font-weight:800; font-size:12px; text-transform:uppercase; margin-bottom:20px;"></div>
+
+    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-bottom:20px;">
+        <a id="link_wa" class="action-btn" style="color:#22c55e;"><i class="fab fa-whatsapp"></i></a>
+        <a id="link_map" target="_blank" class="action-btn" style="color:#3b82f6;"><i class="fas fa-map-marker-alt"></i></a>
+        <a id="link_tel" class="action-btn" style="color:#94a3b8;"><i class="fas fa-phone"></i></a>
+    </div>
+
+    <div style="background:var(--card); padding:15px; border-radius:18px; border:1px solid var(--glass-border); margin-bottom:15px;">
+        <small style="color:var(--p); font-weight:900; font-size:10px;">INSTRUCCIONES</small>
+        <p id="det_admin" style="margin:8px 0 0 0; font-size:14px; color:#e2e8f0;"></p>
+    </div>
+
+    <div>
+        <small style="color:var(--accent); font-weight:900; font-size:10px;">AVANCES PREVIOS</small>
+        <div id="history_notes" class="history-box">Cargando...</div>
+    </div>
+
+    <div id="timer">00:00:00</div>
+
+    <div class="notes-container">
+        <small style="color:var(--p); font-weight:900; font-size:10px;">TU REPORTE DE HOY</small>
+        <textarea id="staff_notes" placeholder="¿Qué hiciste hoy?"></textarea>
+    </div>
+
+    <div style="margin:25px 0 60px;">
+        <button id="btn_punch" class="btn-main" onclick="handlePunch()">EMPEZAR TRABAJO</button>
+    </div>
+</div>
+
+    
+
+<script>
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwmKM4Op3l8K6ZXipdKlAoOBSenl6CH0luwbG-o3cSA5kRi6r7fppzustZ74vdgwBTx/exec"; 
+   
+    let currentUser = localStorage.getItem('panto_user');
+    let isClocked = false;
+    let timerInterval;
+
+    function getISOWeek() {
+        const hoy = new Date();
+        const d = new Date(Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()));
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
+    window.onload = () => { 
+        if(currentUser) {
+            showApp(); 
+        } else {
+            const lastEmail = localStorage.getItem('panto_last_email');
+            if(lastEmail) document.getElementById('login_email').value = lastEmail;
+        }
+    };
+
+    function toggleLoader(show) { document.getElementById('loader').classList.toggle('hidden', !show); }
+
+    
+
+    async function checkRecoverClock() {
+        try {
+            const res = await fetch(`${URL_SCRIPT}?action=check_status&workerName=${encodeURIComponent(currentUser)}&t=${Date.now()}`);
+            const status = await res.json();
+            if(status.active) {
+                isClocked = true;
+                localStorage.setItem('active_job_id', status.jobId);
+                localStorage.setItem('start_time', status.startTimeMillis);
+                startTimer(parseInt(status.startTimeMillis));
+            } else {
+                isClocked = false;
+                localStorage.removeItem('start_time');
+                localStorage.removeItem('active_job_id');
+                if(timerInterval) clearInterval(timerInterval);
+                document.getElementById('timer').innerText = "00:00:00";
+            }
+        } catch(e) { console.error("Error recuperando status"); }
+    }
+
+    // 1. Modificar handleLogin para guardar la compañía
+    async function handleLogin() {
+        const email = document.getElementById('login_email').value;
+        const pass = document.getElementById('login_pass').value;
+        if(!email || !pass) return alert("Completa los datos");
+        toggleLoader(true);
+        try {
+            const res = await fetch(`${URL_SCRIPT}?action=login_staff&email=${encodeURIComponent(email)}&pass=${encodeURIComponent(pass)}`);
+            const data = await res.json();
+            if(data.success) { 
+                localStorage.setItem('panto_user', data.name);
+                localStorage.setItem('panto_last_email', email);
+                localStorage.setItem('panto_compania', data.compania); // <--- NUEVO: Guardamos compañía
+                location.reload(); 
+            } else { 
+                alert(data.msg || "Error de acceso"); 
+                toggleLoader(false);
+            }
+        } catch(e) { alert("Error de conexión"); toggleLoader(false); }
+    }
+
+    // 2. Modificar showApp para mostrar la compañía debajo del nombre
+    async function showApp() {
+        const compania = localStorage.getItem('panto_compania') || "PANTOJA ELITE STAFF";
+        
+        document.getElementById('view_login').classList.add('hidden');
+        document.getElementById('view_list').classList.remove('hidden');
+        document.getElementById('welcome_name').innerText = "Hola, " + currentUser.split(' ')[0];
+        document.getElementById('week_display').innerText = "Semana " + getISOWeek();
+        
+        // Aquí cambiamos el texto estático por la compañía del usuario
+        const labelCompania = document.querySelector('small[style*="letter-spacing: 1px;"]');
+        if(labelCompania) labelCompania.innerText = compania;
+
+        toggleLoader(true);
+        await checkRecoverClock(); 
+        await loadJobs();          
+        toggleLoader(false);
+    }
+
+    async function loadJobs() {
+        try {
+            const res = await fetch(`${URL_SCRIPT}?action=get_worker_orders&workerName=${encodeURIComponent(currentUser)}`);
+            const jobs = await res.json();
+            document.getElementById('jobs_container').innerHTML = jobs.map(t => `
+                <div class="native-card" onclick='viewJob(${JSON.stringify(t)})'>
+                    <div>
+                        <h3 style="margin:0; font-size:16px;">${t.nombre_cliente}</h3>
+                        <div style="font-size:11px; color:var(--neon); margin-top:4px;">${t.servicio} • <b style="white-space:nowrap; color:white;">${t.horas_acumuladas}h acumuladas</b></div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color:var(--p);"></i>
+                </div>
+            `).join('');
+            
+            const activeId = localStorage.getItem('active_job_id');
+            if(activeId) {
+                const jobActivo = jobs.find(j => String(j.id) === String(activeId));
+                if(jobActivo) viewJob(jobActivo);
+            }
+        } catch(e) { console.error("Error cargando órdenes"); }
+    }
+
+    function viewJob(j) {
+        window.activeJob = j;
+        document.getElementById('view_detail').classList.remove('hidden');
+        document.getElementById('det_client').innerText = j.nombre_cliente;
+        document.getElementById('det_service').innerText = j.servicio;
+        document.getElementById('det_admin').innerText = j.instrucciones || "Sin instrucciones.";
+        
+        // Mostrar historial previo
+        document.getElementById('history_notes').innerText = j.notas_staff || "Sin reportes previos.";
+
+        // Links de acción
+        document.getElementById('link_wa').onclick = () => {
+            const msg = encodeURIComponent(`Hola ${j.nombre_cliente}, le saluda el Staff de Pantoja Elite. Ya voy en camino.`);
+            window.open(`https://wa.me/${j.telefono.toString().replace(/\D/g,'')}?text=${msg}`, '_blank');
+        };
+
+        document.getElementById('link_map').href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(j.direccion)}`;
+        document.getElementById('link_tel').href = `tel:${j.telefono}`;
+        
+        updatePunchButton(isClocked && localStorage.getItem('active_job_id') == j.id);
+    }
+
+    async function handlePunch() {
+        const notes = document.getElementById('staff_notes').value;
+        
+        // VALIDACIÓN: Si va a salir, debe escribir reporte
+        if(isClocked && notes.trim().length < 5) {
+            return alert("⚠️ Por favor escribe qué hiciste hoy en el reporte antes de finalizar.");
+        }
+        
+        toggleLoader(true);
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const coords = pos.coords.latitude + "," + pos.coords.longitude;
+            const action = isClocked ? 'PUNCH_OUT' : 'PUNCH_IN';
+            
+            try {
+                const payload = { 
+                    action, 
+                    worker: currentUser, 
+                    id: window.activeJob.id, 
+                    notas: notes, 
+                    coords: coords 
+                };
+                
+                const response = await fetch(URL_SCRIPT, { 
+                    method: 'POST', 
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.text(); // El servidor V24 devuelve "OK"
+                
+                if(result.includes("OK")) {
+                    if(!isClocked) { 
+                        localStorage.setItem('start_time', Date.now()); 
+                        localStorage.setItem('active_job_id', window.activeJob.id); 
+                    } else { 
+                        localStorage.removeItem('start_time'); 
+                        localStorage.removeItem('active_job_id'); 
+                    }
+                    location.reload();
+                } else {
+                    alert("Respuesta inesperada del servidor");
+                    toggleLoader(false);
+                }
+            } catch(e) { 
+                alert("Error al guardar: " + e); 
+                toggleLoader(false); 
+            }
+        }, () => { 
+            alert("❌ Error: GPS obligatorio."); 
+            toggleLoader(false); 
+        }, {enableHighAccuracy:true});
+    }
+
+    function updatePunchButton(clocked) {
+        const btn = document.getElementById('btn_punch');
+        btn.innerText = clocked ? "FINALIZAR JORNADA" : "EMPEZAR JORNADA";
+        btn.style.background = clocked ? "linear-gradient(135deg, #ff4b4b, #991b1b)" : "";
+        isClocked = clocked;
+    }
+
+    function startTimer(start) {
+        if(timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            const diff = Math.floor((Date.now() - start) / 1000);
+            if(diff < 0) return;
+            const h = Math.floor(diff / 3600).toString().padStart(2,'0');
+            const m = Math.floor((diff % 3600) / 60).toString().padStart(2,'0');
+            const s = Math.floor(diff % 60).toString().padStart(2,'0');
+            document.getElementById('timer').innerText = `${h}:${m}:${s}`;
+        }, 1000);
+    }
+
+    function closeDetail() { 
+        if(isClocked) alert("Turno activo. Finaliza para volver."); 
+        else document.getElementById('view_detail').classList.add('hidden'); 
+    }
+    
+    function logout() { 
+        if(isClocked) return alert("Finaliza primero");
+        localStorage.clear(); 
+        location.reload(); 
+    }
+</script>
+</body>
+</html>
