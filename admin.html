@@ -206,7 +206,7 @@
     </div>
 
 <script>
-const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbzjzOfRAj-oT9VNfp1y7IMEstUHX0fZYT_qDWIPRa04g1NzkJCrvunDlVRDQIf9X5rS/exec"; 
+const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbw3s80xQmYRqYe9LZe3LA3EUhfFC64cU7tixsXZzmNK_y3Et-bFwV3lP3nCrT7b-nWW/exec"; 
 let globalData = { clients: [], users: [], rawJobs: [] };
 let timerRef = 15;
 let session = null;
@@ -222,7 +222,7 @@ window.onload = async () => {
             
             await cargarConfiguracionEmpresaIndividual(); 
             
-            if (["Master", "Supervisor", "Admin", "LandLord", "Trabajador"].includes(session.rol)) {
+            if (["Master", "Supervisor", "Admin", "LandLord"].includes(session.rol)) {
                 await initMasterTools();
             }
             
@@ -262,12 +262,14 @@ async function handleLogin() {
         const data = await res.json();
         
         if (data.success) {
+            // Si el servidor dijo que sí, guardamos y entramos
             data.original_compania = data.compania;
             localStorage.setItem('panto_session', JSON.stringify(data));
             location.reload(); 
         } else {
+            // Aquí se mostrará el mensaje de "ACCESO DENEGADO" si es un Worker
             msg.innerText = data.msg || "Usuario o contraseña incorrectos";
-            msg.style.color = "var(--danger)";
+            msg.style.color = "#ff4444"; // Rojo de alerta
         }
     } catch(e) { 
         console.error("Error de Login:", e);
