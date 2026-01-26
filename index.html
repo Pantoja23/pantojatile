@@ -49,19 +49,20 @@
             text-align: center; padding: 20px; position: relative;
             background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), 
                         url('img/logo.png');
-            background-size: cover; background-position: center;
+            background-size: cover; background-position: center; background-attachment: fixed;
         }
 
-        /* --- ESTO ES LO ÚNICO QUE CAMBIÉ PARA QUE SE VEA PERRO EN CEL --- */
-        @media (max-width: 600px) {
+        /* --- FIX PARA QUE EL LOGO NO SE VEA CULERON EN CEL --- */
+        @media (max-width: 900px) {
             .hero {
-                background-size: 85%; /* Hace que el logo se vea más pequeño y no ocupe toda la pantalla */
+                background-attachment: scroll; /* Fix para iPhone */
+                background-size: contain; /* Para que el logo se vea completo */
                 background-repeat: no-repeat;
-                background-color: #030303; /* Rellena lo que sobra para que no se vea cortado */
+                background-color: #030303;
             }
-            .hero h1 { font-size: 2.5rem !important; }
+            .contact-container, .history-grid { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 2.8rem; }
         }
-        /* -------------------------------------------------------------- */
 
         .hero h1 {
             font-size: clamp(2.5rem, 10vw, 6rem); font-weight: 900; line-height: 0.9;
@@ -112,11 +113,6 @@
         }
 
         footer { padding: 50px; text-align: center; border-top: 1px solid #222; color: #555; }
-
-        @media (max-width: 900px) {
-            .contact-container, .history-grid { grid-template-columns: 1fr; }
-            .hero h1 { font-size: 2.8rem; }
-        }
     </style>
 </head>
 <body>
@@ -175,17 +171,17 @@
         <div class="review-card" data-aos="zoom-in">
             <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
             <p>"The bathroom renovation was amazing! La precisión de los cortes is another level. Best in the borderland."</p>
-            <div class="review-user"><i class="fas fa-user-circle"></i> Carlos R.</div>
+            <div class="review-user" style="margin-top:10px;"><i class="fas fa-user-circle"></i> Carlos R.</div>
         </div>
         <div class="review-card" data-aos="zoom-in" data-aos-delay="200">
             <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
             <p>"Awesome service and fast. Me ayudaron con el kitchen design y superaron mis expectations. Súper happy!"</p>
-            <div class="review-user"><i class="fas fa-user-circle"></i> Maria H.</div>
+            <div class="review-user" style="margin-top:10px;"><i class="fas fa-user-circle"></i> Maria H.</div>
         </div>
         <div class="review-card" data-aos="zoom-in" data-aos-delay="400">
             <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
             <p>"Real professionals. Puntuales, clean, and the finish is simply perfect. Worth every single penny."</p>
-            <div class="review-user"><i class="fas fa-user-circle"></i> Juan P.</div>
+            <div class="review-user" style="margin-top:10px;"><i class="fas fa-user-circle"></i> Juan P.</div>
         </div>
     </div>
 </section>
