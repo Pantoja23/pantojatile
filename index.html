@@ -49,8 +49,20 @@
             text-align: center; padding: 20px; position: relative;
             background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), 
                         url('img/logo.png');
-            background-size: cover; background-position: center; background-attachment: fixed;
+            background-size: cover; background-position: center;
         }
+
+        /* --- ESTO ES LO ÚNICO QUE CAMBIÉ PARA QUE SE VEA PERRO EN CEL --- */
+        @media (max-width: 600px) {
+            .hero {
+                background-size: 85%; /* Hace que el logo se vea más pequeño y no ocupe toda la pantalla */
+                background-repeat: no-repeat;
+                background-color: #030303; /* Rellena lo que sobra para que no se vea cortado */
+            }
+            .hero h1 { font-size: 2.5rem !important; }
+        }
+        /* -------------------------------------------------------------- */
+
         .hero h1 {
             font-size: clamp(2.5rem, 10vw, 6rem); font-weight: 900; line-height: 0.9;
             background: linear-gradient(180deg, #fff 30%, var(--neon) 100%);
@@ -223,7 +235,6 @@
         btn.innerText = "SYNCHRONIZING / ENVIANDO...";
         btn.disabled = true;
 
-        // Construimos los datos como un formulario tradicional para que Google no se queje
         const formData = new URLSearchParams();
         formData.append('action', 'save_web_lead');
         formData.append('cliente', document.getElementById('name').value);
@@ -236,7 +247,7 @@
         try {
             await fetch(URL_SCRIPT, {
                 method: 'POST',
-                mode: 'no-cors', // Mantenemos esto para evitar errores de seguridad
+                mode: 'no-cors', 
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: formData.toString()
             });
