@@ -52,16 +52,19 @@
             background-size: cover; background-position: center; background-attachment: fixed;
         }
 
-        /* --- FIX PARA QUE EL LOGO NO SE VEA CULERON EN CEL --- */
+        /* --- AJUSTE PARA LOGO EN CELULAR --- */
         @media (max-width: 900px) {
             .hero {
-                background-attachment: scroll; /* Fix para iPhone */
-                background-size: contain; /* Para que el logo se vea completo */
+                background-attachment: scroll;
+                background-size: contain;
                 background-repeat: no-repeat;
                 background-color: #030303;
             }
-            .contact-container, .history-grid { grid-template-columns: 1fr; }
+            .contact-container, .history-grid { 
+                grid-template-columns: 1fr !important; 
+            }
             .hero h1 { font-size: 2.8rem; }
+            .contact-info, .contact-form { padding: 40px 20px !important; }
         }
 
         .hero h1 {
@@ -222,15 +225,12 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
     AOS.init({ duration: 1000, once: false });
-
     const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwEFGAf41oYs7U_sr6uM_DgJKAnPm8RQEY4HtPxM8U5qdkfr1bTljssy2Ug8nl7ji8L/exec";
-
     document.getElementById('leadForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector('button');
-        btn.innerText = "SYNCHRONIZING / ENVIANDO...";
+        btn.innerText = "SYNCHRONIZING...";
         btn.disabled = true;
-
         const formData = new URLSearchParams();
         formData.append('action', 'save_web_lead');
         formData.append('cliente', document.getElementById('name').value);
@@ -239,25 +239,13 @@
         formData.append('servicio', document.getElementById('service').value);
         formData.append('mensaje', document.getElementById('asunto').value);
         formData.append('compania', 'Gardeas Tile');
-
         try {
-            await fetch(URL_SCRIPT, {
-                method: 'POST',
-                mode: 'no-cors', 
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            });
-
-            alert("✅ PERFECTO! Everything sent correctly. Check your email!");
+            await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: formData.toString() });
+            alert("✅ PERFECTO!");
             e.target.reset();
-        } catch (error) {
-            alert("Error de conexión. Try again, bro.");
-        } finally {
-            btn.innerText = "SEND PROPOSAL / ENVIAR";
-            btn.disabled = false;
-        }
+        } catch (error) { alert("Error."); }
+        finally { btn.innerText = "SEND PROPOSAL / ENVIAR"; btn.disabled = false; }
     };
 </script>
-
 </body>
 </html>
