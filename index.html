@@ -52,7 +52,6 @@
             background-size: cover; background-position: center; background-attachment: fixed;
         }
 
-        /* --- AJUSTE PARA LOGO EN CELULAR --- */
         @media (max-width: 900px) {
             .hero {
                 background-attachment: scroll;
@@ -60,9 +59,7 @@
                 background-repeat: no-repeat;
                 background-color: #030303;
             }
-            .contact-container, .history-grid { 
-                grid-template-columns: 1fr !important; 
-            }
+            .contact-container, .history-grid { grid-template-columns: 1fr !important; }
             .hero h1 { font-size: 2.8rem; }
             .contact-info, .contact-form { padding: 40px 20px !important; }
         }
@@ -91,7 +88,6 @@
             transition: 0.4s; display: inline-block; cursor: pointer; border: none;
         }
         .btn-neon { background: var(--neon); color: #000; box-shadow: 0 0 30px rgba(0, 242, 255, 0.5); }
-        .btn-neon:hover { transform: scale(1.1); box-shadow: 0 0 50px var(--neon); }
 
         .history-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; text-align: left; }
         .history-text h2 { font-size: 3rem; color: var(--neon); margin-bottom: 20px; }
@@ -108,7 +104,7 @@
             background: rgba(10, 10, 10, 0.9); border-radius: 40px; border: 1px solid var(--border);
             overflow: hidden; backdrop-filter: blur(15px);
         }
-        .contact-info { padding: 60px; background: linear-gradient(135deg, #0a0a0a, #000); }
+        .contact-info { padding: 60px; background: linear-gradient(135deg, #0a0a0a, #000); text-align: left; }
         .contact-form { padding: 60px; background: #000; }
         input, select, textarea {
             width: 100%; padding: 15px; margin-bottom: 15px; background: #111;
@@ -122,15 +118,14 @@
 
 <div class="bg-glow"></div>
 
-<a href="https://wa.me/19153095581?text=Que%20onda!%20I%20need%20a%20quote%20for%20a%20remodel" class="wsp-button" target="_blank">
+<a href="https://wa.me/19153095581?text=Hello%20Gardeas%20Tile!%20%F0%9F%90%8D%0A%0AI%20just%20visited%20your%20website%20and%20I'm%20interested%20in%20a%20luxury%20remodeling%20project.%20%E2%9C%A8%0A%0A*Project%20Details:*%0A-%20Type:%20(Kitchen%20/%20Bathroom%20/%20Full%20Tile)%0A-%20Location:%20El%20Paso%20Area%0A%0APlease%20let%20me%20know%20when%20we%20can%20schedule%20a%20professional%20estimate.%20Thanks!" 
+   class="wsp-button" 
+   target="_blank">
     <i class="fab fa-whatsapp"></i>
 </a>
 
 <nav>
-    <div class="logo">
-        <div class="logo-hex"></div>
-        GARDEAS TILE
-    </div>
+    <div class="logo"><div class="logo-hex"></div>GARDEAS TILE</div>
     <div style="display: flex; gap: 20px;">
         <a href="admin.html" style="color:white; text-decoration:none; font-size:12px; font-weight:900;">ADMIN LOGIN</a>
         <a href="worker.html" style="color:var(--neon); text-decoration:none; font-size:12px; font-weight:900;">STAFF PUNCH</a>
@@ -149,7 +144,7 @@
 <section class="section">
     <div class="history-grid">
         <div class="history-img" data-aos="fade-right">
-            <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=800&auto=format&fit=crop" style="width:100%; border-radius:30px; border: 1px solid var(--neon);">
+            <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=800" style="width:100%; border-radius:30px; border: 1px solid var(--neon);">
         </div>
         <div class="history-text" data-aos="fade-left">
             <h2>OUR LEGACY IN EL CHUCO</h2>
@@ -229,7 +224,7 @@
     document.getElementById('leadForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector('button');
-        btn.innerText = "SYNCHRONIZING...";
+        btn.innerText = "ENVIANDO...";
         btn.disabled = true;
         const formData = new URLSearchParams();
         formData.append('action', 'save_web_lead');
@@ -240,10 +235,15 @@
         formData.append('mensaje', document.getElementById('asunto').value);
         formData.append('compania', 'Gardeas Tile');
         try {
-            await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: formData.toString() });
-            alert("✅ PERFECTO!");
+            await fetch(URL_SCRIPT, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString() 
+            });
+            alert("✅ RECIBIDO! Ya cayó en la tabla.");
             e.target.reset();
-        } catch (error) { alert("Error."); }
+        } catch (error) { alert("Error de conexión."); }
         finally { btn.innerText = "SEND PROPOSAL / ENVIAR"; btn.disabled = false; }
     };
 </script>
